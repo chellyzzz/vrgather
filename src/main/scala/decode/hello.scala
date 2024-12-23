@@ -1,22 +1,40 @@
 // src/main/scala/decoder/decoder.scala
-package decoder
+package vrgather
 
 import chisel3._
 import chisel3.util._
 import chisel3.stage._
+import javax.swing.InputMap
 
-class Decoder extends RawModule {
+trait VParameter {
+  val VLEN       : Int = 2048
+  val XLEN       : Int = 16
+  val Vlmulmax   : Int = 8
+  val Vlmax      : Int = 1024
+}
+
+// valid only for VLEN = 2048
+class Vrgather extends Module with VParameter {
   val io = IO(new Bundle {
-    val in = Input(UInt(3.W))
-    val out = Output(UInt(8.W))
+    val index_data = Input(UInt(VLEN.W))
+    val table_data = Input(UInt(VLEN.W))
+    val res_data = Output(Vec(VLEN/XLEN, UInt(XLEN.W)))
+
+    // val eew       = Input(UInt(2.W))
+    val vstart    = Input(UInt(7.W))
+    val vl        = Input(UInt(8.W))
+    val vm        = Input(Bool())
+    val ta        = Input(Bool())
+    val ma        = Input(Bool())
   })
 
-  io.out := MuxLookup(io.in, "b00000000".U, Array(0.U -> "b00000001".U,
-    1.U -> "b00000010".U,
-    2.U -> "b00000100".U,
-    3.U -> "b00001000".U,
-    4.U -> "b00010000".U,
-    5.U -> "b00100000".U,
-    6.U -> "b01000000".U,
-    7.U -> "b10000000".U))
+  val index = Wire(Vec(VLEN/XLEN, UInt(Vlmax.W)))
+  for(i <- 0 until VLEN/XLEN) {
+    index(i) := 1.U << io.index_data(i)
+  }
+
+  for(i <- 0 until VLEN/XLEN) {
+    io.res_data(i) := io.table_data(index(i))
+  }
+
 }
