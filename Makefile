@@ -10,7 +10,7 @@ SCALA_FILE = $(shell find ./src/main/ -name '*.scala')
 VERILATOR = verilator
 VERILATOR_COVERAGE = verilator_coverage
 # verilator flags
-VERILATOR_FLAGS +=  -MMD --trace --build -cc --exe \
+VERILATOR_FLAGS +=  -MMD --trace --build -cc --exe  -j 8 \
 	                                 -O3 --x-assign fast --x-initial fast --noassert -report-unoptflat
 
 # timescale set
